@@ -23,7 +23,7 @@ The virtual machine contains the following items:
 
 The directory `/home/ebpf` includes a copy of this repository and also local copies of the following projects:
 - [Linux kernel net-next](https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git)
-- [BPFabric](https://github.com/UofG-netlab/BPFabric)
+<!-- - [BPFabric](https://github.com/UofG-netlab/BPFabric) --> 
 - [iproute2](https://git.kernel.org/pub/scm/network/iproute2/iproute2-next.git)
 - [prototype-kernel](https://github.com/netoptimizer/prototype-kernel.git)
 
@@ -31,7 +31,7 @@ The directory `/home/ebpf` includes a copy of this repository and also local cop
 
 The following steps have been tested with VirtualBox 5.2.18 on Ubuntu.
 
-After downloading the VM image, unzip the file `.rar`. You should then see a file named `minicurso-ebpf-sbrc2019.vdi`.
+After downloading the VM image, unzip the file `.rar`. You should then see a file named `ebpf-vm.vdi`.
 
 Open the VirtualBox app and then create a new VM by pressing the `New` button and picking a name for it:
 
