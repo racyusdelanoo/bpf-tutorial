@@ -1,61 +1,60 @@
-# Tutorial about the extended Berkeley Packet Filter (eBPF)
+# Tutorial sobre extended Berkeley Packet Filter (eBPF)
 
 Este repositório contém o material utilizado durante a realização do Minicurso sobre eBPF e XDP no [SBRC2019](http://sbrc2019.sbc.org.br/).
 
-## About
+## Conteúdo
 
-This repository is divided as follows:
-- `ansible/`: ansible script used to install required dependencies during VM creation
-- `examples/`: examples of eBPF programs
-- `headers/`: header files needed to compile the examples
-- `images/`: images used in this README
-- `slides.pdf`: slides with theoretical content about eBPF
+O conteúdo deste repositório está dividido da seguinte forma:
+- `ansible/`: script ansible usado para instalar as dependências necessárias durante a criação da VM
+- `exemplos/`: exemplos de programas eBPF utilizados durante o minicurso
+- `headers/`: headers necessários para compilação dos programas
+- `images/`: imagens utilizadas neste README
+- `slides.pdf`: slides com o conteúdo teórico utilizado na apresentação
 
-## Virtual Machine
+## Máquina virtual
 
-We created a virtual machine to be used in this tutorial. It contains all the code and tools required to complete the tutorial step-by-step.
+Uma máquina virtual foi especialmente desenvolvida para este tutorial, contendo todo o código e ferramentas necessárias para a execução de cada passo.
 
-- [Download VirtualBox VM](http://www.winet.dcc.ufmg.br/lib/exe/fetch.php?media=cursos:minicurso_ebpf:ebpf-vm.rar) (user: *ebpf*, senha: *ebpf*)
+- [Download VirtualBox VM](http://www.winet.dcc.ufmg.br/lib/exe/fetch.php?media=cursos:minicurso_ebpf:minicurso-ebpf-sbrc2019.rar) (user: *ebpf*, senha: *ebpf*)
 
-The virtual machine contains the following items:
+A máquina virtual está equipada com os seguintes itens:
 - kernel v5.0.0
 - iproute2-ss190319
 - llvm 6.0.0
 - bpftool
 
-The directory `/home/ebpf` includes a copy of this repository and also local copies of the following projects:
+Além de uma cópia deste repositório, o diretório `/home/ebpf` apresenta cópias locais dos seguintes projetos:
 - [Linux kernel net-next](https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git)
 - [BPFabric](https://github.com/UofG-netlab/BPFabric)
 - [iproute2](https://git.kernel.org/pub/scm/network/iproute2/iproute2-next.git)
 - [prototype-kernel](https://github.com/netoptimizer/prototype-kernel.git)
 
-## Import the virtual machine
+## Importando a máquina virtual
 
-The following steps have been tested with VirtualBox 5.2.18 on Ubuntu.
+Os passos a seguir foram testados com o VirtualBox 5.2.18 no Ubuntu.
 
-After downloading the VM image, unzip the file `.rar`. You should then see a file named `minicurso-ebpf-sbrc2019.vdi`.
+Após fazer o download da imagem, descompacte o arquivo `.rar`. O arquivo resultante será `minicurso-ebpf-sbrc2019.vdi`.
 
-Open the VirtualBox app and then create a new VM by pressing the `New` button and picking a name for it:
+Crie uma nova VM a partir do botão `New` e escolha um nome para a máquina:
 
 <p align="center">
     <img src="./images/vbox-create.png" alt="Criar máquina virtual" width="500" align="middle">
 </p>
 
-Next, VirtualBox will allow modifications to the machine specification, such as the amount of RAM (this value can be modified later).
+Em seguida, o VirtualBox permitirá modificações na especificação da máquina, como quantidade de memória RAM (esse valor pode ser modificado posteriormente).
 
 <p align="center">
     <img src="./images/vbox-memory.png" alt="Ajustar máquina" width="500" align="middle">
 </p>
 
-In the next step, VirtualBox will ask for the desired hard disk option. Here you must use an existing disk, which corresponds to the downloaded VM image:
+Na próxima etapa o VirtualBox perguntará a opção de disco de rígido desejada. Aqui é preciso utilizar um disco já existente, que corresponde à imagem baixada:
 
 <p align="center">
     <img src="./images/vbox-disk.png" alt="Importar disco" width="500" align="middle">
 </p>
 
-Finally, it is necessary to configure the machine with two network interfaces: one in NAT mode (`eth0` - Internet access) and another in HostOnly mode (`eth1` - SSH access).
-After the VM creation, right-click on the VM name and then select the `Setting` option.
-In the `Network` tab, make sure these two interfaces are created:
+
+Por fim, a máquina deve ser configurada com 2 interfaces de rede, uma no modo NAT (`eth0` - acesso à internet) e outra no modo HostOnly (`eth1` - acesso por SSH). Após a criação, clique com o botão direito no nome da VM e selecione `Configurações`. Na aba `Rede` certifique-se de que essas duas interfaces estão criadas:
 
 <p align="center">
     <img src="./images/vbox-nat.png" alt="Importar Appliance" width="500" align="middle">
@@ -64,118 +63,117 @@ In the `Network` tab, make sure these two interfaces are created:
     <img src="./images/vbox-hostonly.png" alt="Importar Appliance" width="500" align="middle">
 </p>
 
-Finished! The machine is now ready for the tutorial.
+Pronto! A máquina está 100% preparada para o tutorial.
 
-## Compiling kernel examples
+## Compilando os exemplos do kernel
 
-The kernel source code has several sample programs, available in the following directories:
+O código fonte do kernel apresenta diversos programas de exemplo, disponíveis nos seguintes diretórios:
 - `samples/bpf`
 - `tools/testing/selftests/bpf`
 
-Here we present two examples from `samples/bpf` folder. To compile them, run the following commands:
+Neste minicurso apresentaremos dois exemplos presentes na pasta `samples/bpf`. Para compilá-los, execute os seguintes comandos:
 
     cd ~/net-next/
     make headers_install
     make samples/bpf/
 
-## Compiling the local examples
+## Compilando os exemplos locais
 
-The examples provided in this repository in the `examples/` folder are accompanied by a Makefile. To compile them, run:
+Os exemplos fornecidos neste repositório na pasta `exemplos/` estão acompanhados de um Makefile. Para compilá-los:
 
-    cd examples/
+    cd exemplos/
     make
 
-**P.S.**: The dependencies required for compilation are already installed on the virtual machine, so we recommend compiling the examples in that environment.
+**OBS**: As dependências necessárias para a compilação já estão instaladas na máquina virtual, portanto recomendamos compilar os exemplos naquele ambiente.
 
-## Example 1: Drop World!
+## Exemplo 1: Drop World!
 
-File location: `./examples/dropworld.c`
+Local: `./exemplos/dropworld.c`
 
-This example is one of the simplest programs possible. It just discards all received packets.
+Esse exemplo representa um dos programas mais simples possíveis. A sua funcionalidade é simplesmente descartar todos os pacotes recebidos.
 
-To compile it, run:
+Para compilá-lo, utilize o comando `make`:
 
-    cd ./examples/
+    cd ./exemplos/
     make
 
-Next, the compiled program can be loaded using the `ip` tool:
+Em seguida, o programa pode ser carregado utilizado a ferramenta `ip`:
 
     sudo ip -force link set dev eth0 xdp obj dropworld.o sec .text
 
-The `.text` argument refers to the ELF section in which the program is located. Check out the paper for more details.
+O argumento `.text`se refere à seção ELF no qual o programa está localizado. Conferir os slides para mais detalhes.
 
-It is possible to check the status of the program by using the following command:
+Podemos conferir o status do programa utilizando o seguinte comando:
 
     ip link show eth0
 
-Expected output:
+Output:
 
-    ebpf@sbrc2019:~/bpf-tutorial/examples$ ip link show eth0
+    ebpf@sbrc2019:~/bpf-tutorial/exemplos$ ip link show eth0
     2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 xdpgeneric qdisc fq_codel state UP mode DEFAULT group default qlen 1000
     link/ether 08:00:27:58:07:42 brd ff:ff:ff:ff:ff:ff
     prog/xdp id 19
 
-To remove the program, just run:
+Para removermos o programa, basta executar:
 
     sudo ip link set dev eth0 xdp off
 
-After the removal, the interface status will be as follows:
+Após a remoção o status da interface será o seguinte:
 
-    ebpf@sbrc2019:~/bpf-tutorial/examples$ ip link show eth0
+    ebpf@sbrc2019:~/bpf-tutorial/exemplos$ ip link show eth0
     2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
         link/ether 08:00:27:58:07:42 brd ff:ff:ff:ff:ff:ff
 
-Since in this case the `eth0` interface is used for Internet access, discarding packets received by this interface will effectively cut off web access.
+Como nesse caso a interface `eth0` é utilizada para acesso à Internet, o descarte de pacotes recebidos por essa interface efetivamente cortará o acesso à web.
 
-On another terminal, start a process to ping some domain on the internet:
+Em um terminal separado, inicie um processo para "pingar" um domínio na internet:
 
     ping google.com
 
-Then load the `dropworld.o` program into the `eth0` interface and notice that the ping responses will be interrupted. This interruption will happen because all response messages sent to the `eth0` interface will be discarded by the loaded program.
+Em seguida, carregue o programa `dropworld.o` na interface eth0 e veja como a respostas ao ping serão interrompidas. Isso ocorrerá pois todas mensagens de respostas enviadas à interface `eth0` serão descartadas pelo programa carregado.
 
-**Extra**: Modify the `dropworld.c` file by changing the return value from `XDP_DROP` to `XDP_PASS`. Then compile and repeat the loading process. Observe that, in this case, the ping responses will still be received. Thus, this new program is effectively an empty operation, which merely receives and passes packets up to the kernel stack.
+**Extra**: modifique o arquivo `dropworld.c` e modifique o valor de retorno de `XDP_DROP` para `XDP_PASS`, compile e repita o processo de carregamento. Nesse caso, perceba que as repostas ao ping ainda serão recebidas, de forma que esse novo programa é efetivamente uma operação vazia, que simples recebe e passa os pacotes para cima na pilha do kernel.
 
-## Example 2: Packet filtering by TCP port
+## Exemplo 2: Filtragem de pacotes por porta TCP
 
-File location: `./examples/portfilter.c`
+Local: `./exemplos/portfilter.c`
 
-This example parses packets received on an interface and discards the ones with the HTTP protocol. Discarding is done by parsing the TCP header source and destination port fields. Packets in which one of these values is 80 are discarded.
+Este exemplo analisa os pacotes recebidos em uma interface e descarta pacotes com o protocolo HTTP. O descarte é feito por meio da análise dos campos de porta de origem e destino do cabeçalho TCP. Pacotes nos quais um desses valores é igual a 80 são descartados.
 
-Similar to the previous example, compile the program by running:
+Similarmente ao exemplo anterior, compile o programa:
 
-    cd ./examples/
+    cd ./exemplos/
     make
 
-Before loading the program, test the access to a web page:
+Antes de carregar o programa, teste o acesso a uma página web:
 
     curl http://www.google.com
 
-The output of this command should be a print of the requested page's HTML code.
+A saída desse comando deve ser um print do código HTML da página em questão.
 
-Load the program using the `ip` tool:
+Carregue utilizando a ferramenta `ip`:
 
     sudo ip -force link set dev eth0 xdp obj portfilter.o sec filter
 
-Now, try to access the same page again:
+Agora tente novamente acessar a mesma página:
 
     curl http://www.google.com
 
-Because of program *portfilter.o*, packets are discarded as soon as they reach the interface `eth0`, preventing access to the web.
+Por conta do programa *portfilter.o* o os pacotes serão descartados assim que chegarem à interface `eth0`, impedindo o acesso.
 
-**Extra**: Modify the program in `portfilter.c` so that it discards all ICMP packets (used by `ping` utility).
+**Extra**: Modifique o arquivo *portfilter.c* para descartar pacotes ICMP (utilizados pela ferramenta `ping`).
 
-## Example 3: Maps and interaction with user space
+## Exemplo 3: Mapas e interação com espaço de usuário
 
-File locations: `xdp1_kern.c` and `xdp1_user.c` in `samples/bpf/` in kernel source code (`~/net-next/samples/bpf/` in the VM).
+Local: `xdp1_kern.c` e `xdp1_user.c` localizados no diretório `samples/bpf/` do código fonte do kernel (`~/net-next/samples/bpf/` na VM).
 
-This example shows how to use maps in eBPF programs and how to interact with user space. The program in `xdp1_kern.c` extracts the layer 4 protocol number (TCP = 6, UDP = 17, ICMP = 1, etc) from each received packet, updates counters for each protocol and then discards the packets.
-The counter values are stored in a map named `rxcnt` and later consulted by the program `xdp1_user.c`, which executes in user space. Through the use of a map, both programs (one in the kernel and another in user space) can exchange information.
+Este exemplo demonstra a utilização de mapas em programas eBPF e como fazer a interação com o espaço de usuário. O programa em `xdp1_kern.c` extrai de cada pacote recebido o número do protocolo de camada 4 utilizado (TCP = 6, UDP = 17, ICMP = 1, etc), atualiza um contador para cada protocolo e em seguida descarta o pacote. Esses valores são salvos no mapa `rxcnt`, que é consultado pelo programa `xdp1_user.c`, que executa em espaço de usuário. Por meio do uso de um mapa, os dois programas (um em kernel e outro em espaço de usuário) são capazes de trocar informação.
 
-To compile the programs, follow the instructions given earlier on how to compile sample programs from the Linux kernel.
+Para compilar os programas, siga as instruções dadas anteriormente sobre como compilar programas de exemplo do kernel do Linux.
 
-Unlike the previous examples, here the eBPF program is loaded into the kernel by the program `xdp_user.c`, in user space, without requiring the use of `ip` tool.
+Diferentemente dos exemplos anteriores, aqui o programa eBPF é carregado no kernel pelo programa `xdp_user.c`, em espaço de usuário, sem a necessidade do uso da ferramenta `ip`.
 
-After the program compilation, the `samples/bpf/` directory will contain the executable file `xdp1` (generated from `xdp_user.c`).
+Após a compilação, o diretório `samples/bpf/` conterá o arquivo executável `xdp1`, gerado após a compilação de `xdp_user.c`.
 
     ebpf@sbrc2019:~/net-next/samples/bpf$ ./xdp1
     usage: xdp1 [OPTS] IFACE
@@ -184,11 +182,11 @@ After the program compilation, the `samples/bpf/` directory will contain the exe
         -S    use skb-mode
         -N    enforce native mode
 
-To load the program in the `eth0` interface, just pass it as a parameter to `xdp1`:
+Para carregar o programa na interface `eth0` basta passá-la como parâmetro:
 
     ./xdp1 eth0
 
-The program will go into an infinite loop, printing the number of packets received per protocol number so far.
+O programa entrará em um loop infinito, imprimindo o número de pacotes recebidos por número de protocolo até o momento.
 
     ebpf@sbrc2019:~/net-next/samples/bpf$ sudo ./xdp1 eth0
     proto 17:          1 pkt/s
@@ -197,13 +195,13 @@ The program will go into an infinite loop, printing the number of packets receiv
     proto 0:          1 pkt/s
     proto 17:          1 pkt/s
 
-In another terminal, make a request using the `ping`, `curl`, `wget` and similars to get packets to pass through the interface.
+Em um outro terminal, faça alguma requisição utilizando as ferramentas `ping`, `curl`, `wget` e afins, para fazer com que pacotes passem pela interface.
 
-It is possible to analyze map content using the Bpftool tool, already compiled and installed on the provided VM. To do this, it is first necessary to check the eBPF programs loaded on the system:
+É possível analisar o conteúdo do mapa utilizando a ferramenta `bpftool`, já compilada e instalada na VM fornecida. Para isso, primeiramente verificamos os programas eBPF carregados no sistema:
 
     sudo bpftool prog show
 
-Expected output:
+Output:
 
     ebpf@sbrc2019:~$ sudo bpftool prog show
     2: cgroup_skb  tag 7be49e3934a125ba  gpl
@@ -228,11 +226,11 @@ Expected output:
             loaded_at 2019-04-23T14:34:06-0400  uid 0
             xlated 488B  jited 336B  memlock 4096B  map_ids 14
 
-The last program listed corresponds to the XDP program loaded by `xdp1`. The output also indicates that it has a map with id 14. We can use this value to query the map content:
+O último programa listado corresponde ao programa XDP carregado por `xdp1`. A saída também indica que ele apresenta um mapa com o id 14. Podemos utilizar esse valor para consultar o conteúdo do mapa:
 
     sudo bpftool map dump id 14
 
-Expected output:
+Output:
 
     ebpf@sbrc2019:~$ sudo bpftool map dump id 14
     key:
@@ -245,21 +243,21 @@ Expected output:
     02 00 00 00
     value (CPU 00): 00 00 00 00 00 00 00 00
     ...
-    (rest of output omitted)
+    (restante da saída omitido)
 
-The map used is of type `BPF_MAP_TYPE_PERCPU_ARRAY`. As the name implies, it has one array per CPU used. In the map declaration, the number of elements has been set to `256`, so the output of command `bpftool` shows the `256` entries corresponding to CPU 0, the only one on the VM.
+O mapa utilizado é do tipo `BPF_MAP_TYPE_PERCPU_ARRAY`. Como o nome indica, ele apresenta um vetor por CPU utilizada. Na declaração do mapa, o número de elementos foi definido como `256`, portanto a saída do comando `bpftool` acima mostra 256 entradas correspondentes à CPU 0, única da VM.
 
-**Extra**: Change the program to let packages pass, rather than being dropped. Also, change the map type to `BPF_MAP_TYPE_HASH` and check its content using `bpftool`.
+**Extra**: Alterar o programa para deixar os pacotes passarem, ao invés de serem descartados. Além disso, mudar o tipo do mapa para `BPF_MAP_TYPE_HASH` e conferir o output com a ferramenta `bpftool`.
 
-## Example 4: Interaction between XDP and TC Layers
+## Exemplo 4: Interação entre camadas XDP e TC
 
-File location: `linux/samples/bpf/`: files `xdp2skb_meta_kern.c` and `xdp2skb_meta.sh`
+Local: `linux/samples/bpf/`: arquivos `xdp2skb_meta_kern.c` e `xdp2skb_meta.sh`
 
-This example aims to demonstrate how the XDP and TC layers can interact through the use of metadata associated with a packet. File `xdp2skb_meta_kern.c` contains two separate programs, one to be loaded into XDP and one to TC, both on reception. Packets received by XDP receive custom metadata, which is read at the TC layer. Script `xdp2skb_meta.sh` is used to load the programs on their respective hooks and configure the system.
+Este exemplo tem como objetivo demonstrar como as camadas XDP e TC podem interagir por meio do uso de metadados associados a um pacote. O arquivo `xdp2skb_meta_kern.c` contém dois programas distintos, um para ser carregado no XDP e outro no TC, ambos na recepção. Os pacotes recebidos pelo XDP recebem um metadado customizado, que é lido na camada TC. O script `xdp2skb_meta.sh` é utilizado para carregar os programas nos respectivos ganchos e configurar o sistema.
 
-To help analyze these programs as well as demonstrate an alternative way to debug eBPF programs, let's modify the `xdp2skb_meta_kern.c` file to print log messages after packet processing on each layer.
+Para auxiliar a análise desses programas, bem como demonstrar uma forma alternativa de depurar programas eBPF, vamos modificar o arquivo `xdp2skb_meta_kern.c` para imprimir mensagens de log após o processamento do pacote em cada camada.
 
-To do so, we will use the helper function `bpf_trace_printk`. For ease of use, we can add the following macro to the file:
+Para isso vamos utilizar a função auxiliar `bpf_trace_printk`. Para facilitar o seu uso, podemos adicionar a seguinte macro ao arquivo:
 
 ```c
 // Nicer way to call bpf_trace_printk()
@@ -270,11 +268,12 @@ To do so, we will use the helper function `bpf_trace_printk`. For ease of use, w
                     ##__VA_ARGS__);                     \
         })
 ```
-Through this macro, we can use function `bpf_trace_printk` indirectly, but with a syntax similar to function `printf`.
 
-Having added the macro, we can now use it to print metadata values on TC and XDP layers.
+Através dessa macro, podemos utilizar a função `bpf_trace_printk` indiretamente, porém com uma sintaxe similar à função `printf`.
 
-Add to end of function *_xdp_mark()*:
+Tendo adicionado a macro, agora podemos utilizá-la para imprimir os valores do metadado nas camadas TC e XDP.
+
+Adicionar ao fim da funçao *_xdp_mark()*:
 
 ```c
 SEC("xdp_mark")
@@ -284,17 +283,17 @@ int _xdp_mark(struct xdp_md *ctx)
     void *data, *data_end;
     int ret;
 
-    <...> // code omitted
+    <...> // código omitido
 
     meta->mark = 42;
 
-    bpf_custom_printk("[XDP] metadata = %d\n",meta->mark); // <-- Add this line
+    bpf_custom_printk("[XDP] metadado = %d\n",meta->mark); // <-- Adicionar essa linha
 
     return XDP_PASS;
 }
 ```
 
-Add to end of function *_tc_mark*:
+Adicionar ao fim da função *_tc_mark*:
 
 ```c
 SEC("tc_mark")
@@ -305,17 +304,17 @@ int _tc_mark(struct __sk_buff *ctx)
     void *data_meta = (void *)(unsigned long)ctx->data_meta;
     struct meta_info *meta = data_meta;
 
-    <...> // code omitted
+    <...> // código omitido
 
     ctx->mark = meta->mark; /* Transfer XDP-mark to SKB-mark */
 
-    bpf_custom_printk("[TC] metadata = %d\n",meta->mark); // <-- Add this line
+    bpf_custom_printk("[TC] metadado = %d\n",meta->mark); // <-- Adicionar essa linha
 
     return TC_ACT_OK;
 }
 ```
 
-The `bpf_trace_printk` function requires programs that use it to be declared using GPL license. Otherwise, the program will be rejected by the verifier during kernel loading. The error message generated by the verifier is as follows:
+Porém a função `bpf_trace_printk` exige que os programas que a utilizam sejam declarados com a licença GPL. Caso contrário, o programa será rejeitado pelo verificador durante o carregamento no kernel. A mensagem gerada pelo verificador é a seguinte:
 
     ebpf@sbrc2019:~/net-next/samples/bpf$ sudo ./xdp2skb_meta.sh --dev eth0                                                                              [16/1675]
 
@@ -358,18 +357,18 @@ The `bpf_trace_printk` function requires programs that use it to be declared usi
     Unable to load program
     ERROR: Exec error(1) occurred cmd: "tc filter add dev eth0 ingress prio 1 handle 1 bpf da obj ./xdp2skb_meta_kern.o sec tc_mark"
 
-To overcome this limitation, it is necessary to declare a special global variable in the `license` ELF section with this information. This can be done by adding the following line at the end of `xdp2skb_meta_kern.c` file.
+Para superar essa limitação, precisamos declarar uma variável global especial na seção ELF `license` com essa informação. Basta adicionar a seguinte linha ao fim do arquivo `xdp2skb_meta_kern.c`:
 
 ```c
 char _license[] SEC("license") = "GPL";
 ```
 
-Finally, recompile the example:
+Por fim, recompilamos o exemplo:
 
     cd ~/net-next
     make samples/bpf/
 
-Next, execute the script `xdp2skb_meta.sh` to load the programs into the kernel:
+Em seguida, basta executarmos o script `xdp2skb_meta.sh` para carregarmos os programas no kernel:
 
     ebpf@sbrc2019:~/net-next/samples/bpf$ sudo ./xdp2skb_meta.sh
 
@@ -382,26 +381,26 @@ Next, execute the script `xdp2skb_meta.sh` to load the programs into the kernel:
 
     ERROR: Please specify network device -- required option --dev
 
-Load the programs in interface `eth0`:
+Carregando os programas na interface `eth0`:
 
     ./xdp2skb_meta.sh --dev eth0
 
-We can also load the programs directly using tools as `ip` for the XDP program, just as before, and `tc` for the TC hook program. In the latter case, it is necessary to create a special `qdisc` in the Linux traffic controller, called `clsact`. All this process can be done using the following commands:
+Também podemos carregar os programas diretamente, utilizando as ferramentas `ip` para o programa XDP, como feito anteriormente, e `tc` para o programa no gancho TC. Nesse último caso, é necessário criar uma `qdisc` especial no controlador de tráfego do Linux, chamada `clsact`. Todo esse processo pode ser feito utilizando os seguintes comandos:
 
     tc qdisc add dev eth0 clsact
     tc filter add dev eth0 ingress bpf da obj xdp2skb_kern.o sec tc_mark
 
-For more information about eBPF on the TC hook, check out the command `man tc-bpf`.
+Para mais informações sobre eBPF no gancho TC, confira o comando `man tc-bpf`.
 
-Once the programs have been loaded on their respective hooks, we can analyze the log messages generated by each one in the file `/sys/kernel/debug/tracing/trace`:
+Com os programas carregados em seus respectivos ganchos, podemos analisar as mensagens de log geradas por cada um no arquivo `/sys/kernel/debug/tracing/trace`:
 
     sudo cat /sys/kernel/debug/tracing/trace
 
-For continuous reading, use the file `trace_pipe`:
+Para fazer uma leitura contínua, utilize o arquivo `trace_pipe`:
 
     sudo cat /sys/kernel/debug/tracing/trace_pipe
 
-With the eBPF programs loaded in the kernel and some traffic flowing through the interface, we can observe the generated messages:
+Com os programas eBPF carregados no kernel e com algum tráfego fluindo pela interface, podemos observar as mensagens geradas:
 
     ebpf@sbrc2019:~/net-next/samples/bpf$ sudo cat /sys/kernel/debug/tracing/trace
     # tracer: nop
@@ -415,19 +414,19 @@ With the eBPF programs loaded in the kernel and some traffic flowing through the
     #                            ||| /     delay
     #           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION
     #              | |       |   ||||       |         |
-            <idle>-0     [000] ..s. 13699.213984: 0: [XDP] metadata = 42
-            <idle>-0     [000] ..s. 13699.214009: 0: [TC] metadata = 42
-            <idle>-0     [000] ..s. 13699.421529: 0: [XDP] metadata = 42
-            <idle>-0     [000] ..s. 13699.421542: 0: [TC] metadata = 42
-            <idle>-0     [000] ..s. 13704.450195: 0: [XDP] metadata = 42
-            <idle>-0     [000] ..s. 13704.450205: 0: [TC] metadata = 42
-            <idle>-0     [000] ..s. 13704.450216: 0: [XDP] metadata = 42
+            <idle>-0     [000] ..s. 13699.213984: 0: [XDP] metadado = 42
+            <idle>-0     [000] ..s. 13699.214009: 0: [TC] metadado = 42
+            <idle>-0     [000] ..s. 13699.421529: 0: [XDP] metadado = 42
+            <idle>-0     [000] ..s. 13699.421542: 0: [TC] metadado = 42
+            <idle>-0     [000] ..s. 13704.450195: 0: [XDP] metadado = 42
+            <idle>-0     [000] ..s. 13704.450205: 0: [TC] metadado = 42
+            <idle>-0     [000] ..s. 13704.450216: 0: [XDP] metadado = 42
 
-By looking at the messages, we can see that the metadata added on the XDP hook could be successfully received by the program on the TC hook, effectively sharing information between the two kernel stack layers.
+Pelas mensagens geradas podemos ver que o metadado adicionado no gancho XDP pôde ser recebido pelo programa no gancho TC, efetivamente compartilhando informação entre as duas camadas da pilha do kernel.
 
-## Example 5: Adding a new map type to BPFabric
+## Exemplo 5: Adição de um novo mapa ao BPFabric
 
-File location: Files `foo_map.c`, `foo_map.h`, `foo_counter.c` and `foo_counter.py` in `./examples/BPFabric`.
+Local: Arquivos `foo_map.c`, `foo_map.h`, `foo_counter.c` e `foo_counter.py` localizados no diretório `./exemplos/BPFabric`.
 
 Este exemplo mostra os passos necessários para se incluir um novo mapa ao BPFabric.
 
@@ -511,16 +510,16 @@ Para verificar que a aplicação funciona corretamente, execute um comando de `p
     ebpf@osboxes:~/BPFabric/controller$ python foo_counter.py 
     Connection from switch 00000001, version 1
     Installing the eBPF ELF
-    counter:    1 packet(s)
-    counter:    2 packet(s)
-    counter:    3 packet(s)
-    counter:    4 packet(s)
-    counter:    5 packet(s)
-    counter:    6 packet(s)
-    counter:    7 packet(s)
-    counter:    8 packet(s)
-    counter:    9 packet(s)
-    counter:   10 packet(s)
-    counter:   11 packet(s)
+    contador:    1 pacote(s)
+    contador:    2 pacote(s)
+    contador:    3 pacote(s)
+    contador:    4 pacote(s)
+    contador:    5 pacote(s)
+    contador:    6 pacote(s)
+    contador:    7 pacote(s)
+    contador:    8 pacote(s)
+    contador:    9 pacote(s)
+    contador:   10 pacote(s)
+    contador:   11 pacote(s)
     ...
-    (rest of output omitted)
+    (restante da saída omitido)
