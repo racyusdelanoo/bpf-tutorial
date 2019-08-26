@@ -1,6 +1,4 @@
-# Tutorial about the extended Berkeley Packet Filter (eBPF)
-
-Este repositório contém o material utilizado durante a realização do Minicurso sobre eBPF e XDP no [SBRC2019](http://sbrc2019.sbc.org.br/).
+# Fast Packet Processing with eBPF and XDP
 
 ## About
 
@@ -425,7 +423,7 @@ With the eBPF programs loaded in the kernel and some traffic flowing through the
 
 By looking at the messages, we can see that the metadata added on the XDP hook could be successfully received by the program on the TC hook, effectively sharing information between the two kernel stack layers.
 
-## Example 5: Adding a new map type to BPFabric
+<!-- ## Example 5: Adding a new map type to BPFabric
 
 File location: Files `foo_map.c`, `foo_map.h`, `foo_counter.c` and `foo_counter.py` in `./examples/BPFabric`.
 
@@ -523,4 +521,4 @@ Para verificar que a aplicação funciona corretamente, execute um comando de `p
     counter:   10 packet(s)
     counter:   11 packet(s)
     ...
-    (rest of output omitted)
+    (rest of output omitted) -->
