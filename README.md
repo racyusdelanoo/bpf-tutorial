@@ -7,7 +7,6 @@ This repository is divided as follows:
 - `examples/`: examples of eBPF programs
 - `headers/`: header files needed to compile the examples
 - `images/`: images used in this README
-- `slides.pdf`: slides with theoretical content about eBPF
 
 ## Virtual Machine
 
