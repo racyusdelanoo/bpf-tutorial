@@ -12,7 +12,7 @@ This repository is divided as follows:
 
 We created a virtual machine to be used in this tutorial. It contains all the code and tools required to complete the tutorial step-by-step.
 
-- [Download VirtualBox VM](http://www.winet.dcc.ufmg.br/lib/exe/fetch.php?media=cursos:minicurso_ebpf:ebpf-vm.rar) (user: *ebpf*, senha: *ebpf*)
+- [Download VirtualBox VM](http://www.winet.dcc.ufmg.br/lib/exe/fetch.php?media=cursos:minicurso_ebpf:ebpf-vm.rar) (user: *ebpf*, password: *ebpf*)
 
 The virtual machine contains the following items:
 - kernel v5.0.0
