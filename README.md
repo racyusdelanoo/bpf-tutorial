@@ -382,10 +382,10 @@ Load the programs in interface `eth0`:
 
     ./xdp2skb_meta.sh --dev eth0
 
-We can also load the programs directly using tools as `ip` for the XDP program, just as before, and `tc` for the TC hook program. In the latter case, it is necessary to create a special `qdisc` in the Linux traffic controller, called `clsact`. All this process can be done using the following commands:
+We can also load the programs directly using tools as `ip` for the XDP program (`sudo ip -force link set dev eth0 xdp obj xdp2skb_meta_kern.o sec xdp_mark`), just as before, and `tc` for the TC hook program. In the latter case, it is necessary to create a special `qdisc` in the Linux traffic controller, called `clsact`. All this process can be done using the following commands:
 
-    tc qdisc add dev eth0 clsact
-    tc filter add dev eth0 ingress bpf da obj xdp2skb_kern.o sec tc_mark
+    sudo tc qdisc add dev eth0 clsact
+    sudo tc filter add dev eth0 ingress bpf da obj xdp2skb_meta_kern.o sec tc_mark
 
 For more information about eBPF on the TC hook, check out the command `man tc-bpf`.
 
