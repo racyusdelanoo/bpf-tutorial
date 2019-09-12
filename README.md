@@ -156,7 +156,7 @@ The output of this command should be a print of the requested page's HTML code. 
 
 Load the program using the `ip` tool:
 
-    sudo ip -force link set dev eth0 xdp obj portfilter.o sec filter
+    sudo ip -force link set dev eth0 xdp obj tcpfilter.o sec .text
 
 Now, try to access the same page again:
 
