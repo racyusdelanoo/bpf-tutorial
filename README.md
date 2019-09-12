@@ -253,7 +253,7 @@ The map used is of type `BPF_MAP_TYPE_PERCPU_ARRAY`. As the name implies, it has
 
 **Extra**: Change the program to let packages pass, rather than being dropped. Also, change the map type to `BPF_MAP_TYPE_HASH` and check its content using `bpftool`.
 
-#### Example 3: **Cooperation between XDP and TC**
+### Example 3: **Cooperation between XDP and TC**
 
 File location: `./examples/layercoop.c`
 
@@ -276,8 +276,7 @@ Next, we need to load the program responsible for handling the stats collection 
 
 Now we can load the program on the TC `egress` hook, to run it on TX:
 
-    sudo tc filter add dev eth0 egress bpf da \
-        obj layercoop.o sec tx
+    sudo tc filter add dev eth0 egress bpf da obj layercoop.o sec tx
 
 From now on, all pair of communicating IPs will have an entry on the map shared by these programs, which can be inspected using `bpftool` as explained in the previous example.
 
