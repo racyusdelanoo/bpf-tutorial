@@ -2,7 +2,9 @@
 
 ## About
 
-This repository is divided as follows:
+This repository presents complimentary material to the paper "Fast Packet Processing with eBPF and XDP: Concepts, Code, Challenges and Applications" submitted to ACM Computing Surveys (CSUR).
+
+The contents are divided as as follows:
 - `ansible/`: ansible script used to install required dependencies during VM creation
 - `examples/`: examples of eBPF programs
 - `headers/`: header files needed to compile the examples
@@ -74,7 +76,7 @@ Here we present two examples from `samples/bpf` folder. To compile them, run the
     make headers_install
     make samples/bpf/
 
-## Compiling the local examples
+## Compiling local examples
 
 The examples provided in this repository in the `examples/` folder are accompanied by a Makefile. To compile them, run:
 
@@ -83,7 +85,11 @@ The examples provided in this repository in the `examples/` folder are accompani
 
 **P.S.**: The dependencies required for compilation are already installed on the virtual machine, so we recommend compiling the examples in that environment.
 
-## Example 1: Drop World!
+## Examples
+
+Below are the step-by-step instructions on how to compile and run each of the examples presented in the ACM CSUR paper, as well as some extra ones. In-depth explanations of each example are present in the paper.
+
+### Example 0: **Drop World!**
 
 File location: `./examples/dropworld.c`
 
@@ -131,11 +137,11 @@ Then load the `dropworld.o` program into the `eth0` interface and notice that th
 
 **Extra**: Modify the `dropworld.c` file by changing the return value from `XDP_DROP` to `XDP_PASS`. Then compile and repeat the loading process. Observe that, in this case, the ping responses will still be received. Thus, this new program is effectively an empty operation, which merely receives and passes packets up to the kernel stack.
 
-## Example 2: Packet filtering by TCP port
+### Example 1: **TCP filter**
 
-File location: `./examples/portfilter.c`
+File location: `./examples/tcpfilter.c`
 
-This example parses packets received on an interface and discards the ones with the HTTP protocol. Discarding is done by parsing the TCP header source and destination port fields. Packets in which one of these values is 80 are discarded.
+This example parses packets received on an interface and discards the ones with the TCP protocol. Discarding is done by parsing the IP header protocol field. Packets with a protocol equal to 6, which corresponds to TCP, are discarded.
 
 Similar to the previous example, compile the program by running:
 
@@ -146,7 +152,7 @@ Before loading the program, test the access to a web page:
 
     curl http://www.google.com
 
-The output of this command should be a print of the requested page's HTML code.
+The output of this command should be a print of the requested page's HTML code. Since HTTP operates over TCP, once we load the program we should not receive the response to the request above.
 
 Load the program using the `ip` tool:
 
@@ -156,11 +162,11 @@ Now, try to access the same page again:
 
     curl http://www.google.com
 
-Because of program *portfilter.o*, packets are discarded as soon as they reach the interface `eth0`, preventing access to the web.
+Because of program *tcpfilter.o*, packets are discarded as soon as they reach the interface `eth0`, preventing access to the web, among any other service that operates over TCP
 
-**Extra**: Modify the program in `portfilter.c` so that it discards all ICMP packets (used by `ping` utility).
+**Extra**: Modify the program in `tcpfilter.c` so that it discards all ICMP packets (used by `ping` utility). Also check the program in `portfilter.c`, which drops packets based on the application layer protocol used.
 
-## Example 3: Maps and interaction with user space
+### Example 2: **User and kernel space interaction**
 
 File locations: `xdp1_kern.c` and `xdp1_user.c` in `samples/bpf/` in kernel source code (`~/net-next/samples/bpf/` in the VM).
 
@@ -247,7 +253,71 @@ The map used is of type `BPF_MAP_TYPE_PERCPU_ARRAY`. As the name implies, it has
 
 **Extra**: Change the program to let packages pass, rather than being dropped. Also, change the map type to `BPF_MAP_TYPE_HASH` and check its content using `bpftool`.
 
-## Example 4: Interaction between XDP and TC Layers
+#### Example 3: **Cooperation between XDP and TC**
+
+File location: `./examples/layercoop.c`
+
+This example uses two eBPF programs in different layers (XDP and TC) to collect joint statistics about communication between any pair of IPs that cross the corresponding interface.
+
+As before, to compile the example just run:
+
+    cd ./examples/
+    make
+
+Now, load and attach the program from section `rx` to the XDP layer on a chosen interface, say `eth0`:
+
+    sudo ip link set dev eth0 xdp obj layercoop.o sec rx
+
+The extra flag `-force` after `ip` might be necessary if another XDP program was already attached to that interface.
+
+Next, we need to load the program responsible for handling the stats collection on TX (ELF section `tx`). But before that, we need to create the `clsact` qdisc on TC:
+
+    sudo tc qdisc add dev eth0 clsact
+
+Now we can load the program on the TC `egress` hook, to run it on TX:
+
+    sudo tc filter add dev eth0 egress bpf da \
+        obj layercoop.o sec tx
+
+From now on, all pair of communicating IPs will have an entry on the map shared by these programs, which can be inspected using `bpftool` as explained in the previous example.
+
+Finally, to unload both programs:
+
+    sudo ip link set dev eth0 xdp off
+    sudo tc filter del dev eth0 egress
+
+## Extra examples
+
+### Extra example 1: **Packet filtering by TCP port**
+
+File location: `./examples/portfilter.c`
+
+This example parses packets received on an interface and discards the ones with the HTTP protocol. Discarding is done by parsing the TCP header source and destination port fields. Packets in which one of these values is 80 are discarded.
+
+Similar to the previous example, compile the program by running:
+
+    cd ./examples/
+    make
+
+Before loading the program, test the access to a web page:
+
+    curl http://www.google.com
+
+The output of this command should be a print of the requested page's HTML code.
+
+Load the program using the `ip` tool:
+
+    sudo ip -force link set dev eth0 xdp obj portfilter.o sec filter
+
+Now, try to access the same page again:
+
+    curl http://www.google.com
+
+Because of program *portfilter.o*, packets are discarded as soon as they reach the interface `eth0`, preventing access to the web.
+
+**Extra**: Modify the program in `portfilter.c` so that it discards all ICMP packets (used by `ping` utility).
+
+### Extra example 2: **Interaction between XDP and TC through metadata field**
 
 File location: `linux/samples/bpf/`: files `xdp2skb_meta_kern.c` and `xdp2skb_meta.sh`
 
@@ -420,103 +490,3 @@ With the eBPF programs loaded in the kernel and some traffic flowing through the
             <idle>-0     [000] ..s. 13704.450216: 0: [XDP] metadata = 42
 
 By looking at the messages, we can see that the metadata added on the XDP hook could be successfully received by the program on the TC hook, effectively sharing information between the two kernel stack layers.
-
-<!-- ## Example 5: Adding a new map type to BPFabric
-
-File location: Files `foo_map.c`, `foo_map.h`, `foo_counter.c` and `foo_counter.py` in `./examples/BPFabric`.
-
-Este exemplo mostra os passos necessários para se incluir um novo mapa ao BPFabric.
-
-O mapa a ser incluído, referenciado aqui como *FOO\_MAP*, é bem simples, sendo ele composto apenas de um contador inteiro de 32 bits. Sua definição pode ser encontrada nos arquivos `foo_map.h` e `foo_map.c`. No arquivo `foo_map.h` encontramos as assinaturas das funções definidas para o *FOO\_MAP*, enquanto no `foo_map.c` encontramos as implementações delas. São elas:
-* `foo_map_alloc`: responsável pela alocação da estrutura do mapa, ou seja, do contador.
-
-* `foo_map_free`: responsável pela desalocação da estrutura do mapa.
-
-* `foo_map_update_elem`: responsável por incrementar o valor do contador em 1 a cada chamada.
-
-* `foo_map_lookup_elem`: responsável por recuperar o valor do contador.
-
-O primeiro passo para incluir o *FOO\_MAP* é adicionar seu código fonte (`foo_map.c` e `foo_map.h`) ao diretório do BPFabric no qual se encontram as definições dos mapas disponíveis (`~/BPFabric/bpfmap`).
-
-O segundo passo consiste em adicionar uma referência ao mapa à lista dos tipos de mapas disponíveis. Isto é feito através da adição de uma nova opção ao enum `bpf_map_type` (definida no arquivo `~/BPFabric/bpfmap/bpfmap.h`). O nome desta opção será posteriormente utilizado para se referir ao novo mapa. Se o referenciarmos como `BPF_MAP_TYPE_FOO` e adicionarmos essa opção ao `bpf_map_type`, o enum deverá ficar da seguinte forma:
-
-```c
-enum bpf_map_type {
-    BPF_MAP_TYPE_UNSPEC,
-    BPF_MAP_TYPE_HASH,
-    BPF_MAP_TYPE_ARRAY,
-    BPF_MAP_TYPE_FOO,
-};
-```
-
-No próximo passo mapeamos as referências das funções do *FOO\_MAP* para as operações oferecidas pela máquina eBPF do BPFabric. O mapeamento é feito editando o arquivo `~/BPFabric/bpfmap/bpfmap.c`. Primeiro precisamos incluir nele o arquivo header do novo mapa (`#include "foo_map.h"`) para que as referências possam ser encontradas. Em seguida devemos localizar o vetor `bpf_map_types` no arquivo. Os elementos desse vetor são do tipo struct `bpf_map_ops` (definida no arquivo `~/BPFabric/bpfmap/bpfmap.h`), que define as operações disponíveis para um mapa. O mapeamento das funções do *FOO\_MAP* deve adicionar um novo elemento ao vetor e associar as funções definidas no arquivo `foo_map.h` aos campos da struct `bpf_map_ops`. Uma forma de fazer isso é adicionar o seguinte elemento:
-
-```c
-[BPF_MAP_TYPE_FOO] = {
-    .map_alloc = foo_map_alloc,
-    .map_free  = foo_map_free,
-    .map_lookup_elem = foo_map_lookup_elem,
-    .map_update_elem = foo_map_update_elem,
-}
-```
-
-É possível observar que, diferente dos demais elementos, esse não atribui referências para os campos `map_get_next_key` e `map_delete_elem`. Isto acontece pois não definimos funções para essas operações. Dessa forma, o usuário não terá acesso a essas operações quando utilizar esse mapa.
-
-Movendo para o próximo passo, precisamos adicionar a referência aos arquivos fonte para que o *FOO\_MAP* possa ser compilado. Isto é feito editando o arquivo `~/BPFabric/bpfmap/Makefile` e adicionando o nome do arquivo fonte (`foo_map`) na variável `bpfmap_mods`:
-
-```
-bpfmap_mods += foo_map
-```
-
-Por último, precisamos adicionar uma referência global ao mapa. Uma forma de se fazer isto é adicionar uma definição ao arquivo `BPFabric/includes/ebpf_consts.h`. Esta definição deve relacionar o nome do mapa (`BPF_MAP_TYPE_FOO`) à sua posição no enum `bpf_map_type` (no caso 3). Assim, basta incluir a seguinte linha ao arquivo:
-```c
-#define BPF_MAP_TYPE_FOO 3
-```
-
-Agora basta compilar o código adicionado. Para isto, basta executar os seguintes comandos:
-
-```
-cd ~/BPFabric
-make
-```
-
-**Teste**: A fim de verificar se o procedimento de inclusão do mapa foi bem sucedido, podemos executar um exemplo que utilize o *FOO\_MAP*. Os arquivos `foo_counter.c` e `foo_counter.py` foram preparados exatamente para isto. Enquanto o primeiro arquivo define o comportamento do switch, o segundo representa a aplicação controladora.
-O programa definido em `foo_counter.c` utiliza a função de atualização do *FOO\_MAP* para incrementar o contador do mapa a cada novo pacote trafegado na rede. Ele também envia ao controlador o valor corrente do contador a cada novo pacote.
-
-Para podermos executar o exemplo, o arquivo `foo_counter.c` deve ser adicionado ao diretório `~/BPFabric/examples` e o arquivo `foo_counter.py` ao diretório `~/BPFabric/controller`.
-Deve-se então compilar o programa para o switch fazendo:
-
-```
-cd ~/BPFabric/examples
-make
-```
-
-Deverá ser gerado um arquivo objeto `foo_counter.o`. Em seguida, acesse a pasta `~/BPFabric/mininet` e execute o script `1sw_topo.py`. Ele deverá criar uma rede de testes com um switch e 2 *hosts* e então dar acesso à interface de comandos do Mininet.
-
-Com a rede já criada, execute o controlador através dos comandos
-
-```
-cd ~/BPFabric/controller/
-python foo_counter.py
-```
-
-Ao executar, o controlador primeiro se encarregará de enviar o código compilado (`foo_counter.o`) para o switch, que deverá então ter seu comportamento definido por ele. Depois ficará esperando por notificações do switch sobre o valor do contador.
-
-Para verificar que a aplicação funciona corretamente, execute um comando de `ping` entre os *hosts* no Mininet (por exemplo `h1 ping h2`) e observe que o controlador imprime no terminal a quantidade de pacotes que passaram pelo switch.
-
-    ebpf@osboxes:~/BPFabric/controller$ python foo_counter.py 
-    Connection from switch 00000001, version 1
-    Installing the eBPF ELF
-    counter:    1 packet(s)
-    counter:    2 packet(s)
-    counter:    3 packet(s)
-    counter:    4 packet(s)
-    counter:    5 packet(s)
-    counter:    6 packet(s)
-    counter:    7 packet(s)
-    counter:    8 packet(s)
-    counter:    9 packet(s)
-    counter:   10 packet(s)
-    counter:   11 packet(s)
-    ...
-    (rest of output omitted) -->
