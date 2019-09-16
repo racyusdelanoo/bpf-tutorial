@@ -2,8 +2,7 @@
 
 LLVM_VERSION ?=
 LLVM := $(shell clang$(LLVM_VERSION) --version)
-CLANG_FLAGS ?= -W -Wall \
-	-Wno-compare-distinct-pointer-types
+CLANG_FLAGS ?= -W -Wall	-Wno-compare-distinct-pointer-types -g
 
 SRCS=$(wildcard *.c)
 OBJS=$(patsubst %.c,%.o,$(SRCS))
