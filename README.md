@@ -141,30 +141,32 @@ Then load the `dropworld.o` program into the `eth0` interface and notice that th
 
 File location: `./examples/tcpfilter.c`
 
-This example parses packets received on an interface and discards the ones with the TCP protocol. Discarding is done by parsing the IP header protocol field. Packets with a protocol equal to 6, which corresponds to TCP, are discarded.
+This example parses packets received on an interface and only accepts the ones with TCP segments. Filtering is done by parsing the IP header protocol field. Only packets with a protocol equal to 6, which corresponds to TCP, are accepted.
 
 Similar to the previous example, compile the program by running:
 
     cd ./examples/
     make
 
-Before loading the program, test the access to a web page:
+Before loading the program, try pinging a domain name and test the access to a web page:
 
+    ping google.com
     curl http://www.google.com
 
-The output of this command should be a print of the requested page's HTML code. Since HTTP operates over TCP, once we load the program we should not receive the response to the request above.
+The ping must be successful and the output of the second command should be a print of the requested page's HTML code. Since `ping` uses ICMP packets and HTTP operates over TCP, once we load the program, we should continue to receive responses to curl requests and ping responses should be interrupted.
 
 Load the program using the `ip` tool:
 
     sudo ip -force link set dev eth0 xdp obj tcpfilter.o sec .text
 
-Now, try to access the same page again:
+Now, try to access the same page again and then try to ping the same domain:
 
     curl http://www.google.com
+    ping google.com
 
-Because of program *tcpfilter.o*, packets are discarded as soon as they reach the interface `eth0`, preventing access to the web, among any other service that operates over TCP
+Because of program *tcpfilter.o*, packets are discarded as soon as they reach the interface `eth0`, preventing access to any service that does not operate over TCP.
 
-**Extra**: Modify the program in `tcpfilter.c` so that it discards all ICMP packets (used by `ping` utility). Also check the program in `portfilter.c`, which drops packets based on the application layer protocol used.
+**Extra**: Modify the program in `tcpfilter.c` so that it only accepts ICMP packets (used by `ping` utility). Also check the program in `portfilter.c`, which drops packets based on the application layer protocol used.
 
 ### Example 2: **User and kernel space interaction**
 
